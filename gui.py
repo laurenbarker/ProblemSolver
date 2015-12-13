@@ -24,7 +24,7 @@ class MainWindow(tk.Frame):
         t = tk.Toplevel(self)
         t.wm_title("Puzzle: %s" % puzzle_name)
         content = self.open_puzzle(puzzle_name)
-        board = tk.Canvas(t, bg="grey", height=250, width=300)
+        board = tk.Canvas(t, bg="grey", height=250, width=500)
         org_x1 = 10
         org_x2 = 20
         org_x3 = 20
