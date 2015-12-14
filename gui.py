@@ -2,8 +2,8 @@
 
 import Tkinter as tk
 import FileReader as fileReader
+from tile import Piece
 from tile import Tile
-from tile import Letter
 
 
 class MainWindow(tk.Frame):
@@ -88,21 +88,41 @@ class MainWindow(tk.Frame):
         board.pack()
         board.pack(side="top", fill="both", expand=True, padx=100, pady=100)
 
+    # create list of x values used for a tile object
+    # remove x values from list once a grey square on the x value
     def get_puzzle_pieces(self, content):
         all_tiles = []
-        tile = Tile([])
-        letter_position_y = 0;
+        all_indexes = []
+        all_pieces = []
+        tile_position_y = 0
         for line in content:
-            letter_position_x = 0
+            tile_position_x = 0
             for letter in line:
                 if letter != ' ':
-                    new_letter = Letter([letter_position_x, letter_position_y])
-                letter_position_x = letter_position_x + 1
-            letter_position_y = letter_position_y + 1
+                    new_position = [tile_position_x, tile_position_y]
+                    new_tile = Tile(new_position)
+                    all_tiles.append(new_tile)
+                    all_indexes.append(new_position)
+                tile_position_x = tile_position_x + 1
+            tile_position_y = tile_position_y + 1
 
-        all_tiles.append(tile)
-        #import pdb; pdb.set_trace()
-        return all_tiles
+        for tile in all_tiles:
+            position = tile.get_position()
+            check_position_up = [position[0], position[1] - 1]
+            check_position_left = [position[0] - 1, position[1]]
+            check_position_up_right = [position[0] + 1, position[1] - 1]
+
+            if check_position_up in all_indexes or check_position_left in all_indexes or check_position_up_right in all_indexes:
+                for piece in all_pieces:
+                    blocks = piece.get_blocks()
+                    if check_position_up in blocks or check_position_left in blocks or check_position_up_right in blocks:
+                        piece.add_block(position)
+            else:
+                piece = Piece(position)
+                all_pieces.append(piece)
+
+        # import pdb; pdb.set_trace()
+        return all_pieces
 
 if __name__ == "__main__":
     root = tk.Tk()
