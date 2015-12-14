@@ -94,18 +94,31 @@ class MainWindow(tk.Frame):
         all_tiles = []
         all_indexes = []
         all_pieces = []
+
+        # find position and color of each tile and store it
         tile_position_y = 0
+        color1 = ''
+        color2 = ''
         for line in content:
             tile_position_x = 0
             for letter in line:
                 if letter != ' ':
                     new_position = [tile_position_x, tile_position_y]
                     new_tile = Tile(new_position)
-                    all_tiles.append(new_tile)
                     all_indexes.append(new_position)
+                    if letter == color2:
+                        new_tile.set_color(1)
+                    elif color1 == '':
+                        color1 = letter
+                    elif color2 == '' and letter != color1:
+                        color2 = letter
+                        new_tile.set_color(1)
+                    all_tiles.append(new_tile)
+
                 tile_position_x = tile_position_x + 1
             tile_position_y = tile_position_y + 1
 
+        # searches through list of tiles to find pieces
         for tile in all_tiles:
             position = tile.get_position()
             check_position_up = [position[0], position[1] - 1]
@@ -114,12 +127,24 @@ class MainWindow(tk.Frame):
 
             if check_position_up in all_indexes or check_position_left in all_indexes or check_position_up_right in all_indexes:
                 for piece in all_pieces:
-                    blocks = piece.get_blocks()
+                    blocks = piece.get_positions()
                     if check_position_up in blocks or check_position_left in blocks or check_position_up_right in blocks:
-                        piece.add_block(position)
+                        piece.add_block(tile)
             else:
-                piece = Piece(position)
+                piece = Piece(tile)
                 all_pieces.append(piece)
+
+        # searches through list of pieces to find the board (largest piece)
+        largest_piece_index = 0
+        largest_size = 0
+        piece_index = 0
+        for piece in all_pieces:
+            if piece.get_size() > largest_size:
+                largest_piece_index = piece_index
+                largest_size = piece.get_size()
+            piece_index = piece_index + 1
+
+        all_pieces[largest_piece_index].set_board(True)
 
         # import pdb; pdb.set_trace()
         return all_pieces

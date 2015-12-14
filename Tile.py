@@ -7,6 +7,7 @@ class Piece:
         self.board = False
         self.blocks = [block]
         self.size = 1
+        self.positions = [block.get_position()]
 
     def get_blocks(self):
         return self.blocks
@@ -15,6 +16,10 @@ class Piece:
         if block not in self.blocks:
             self.blocks.append(block)
             self.increment_size()
+            self.positions.append(block.get_position())
+
+    def get_positions(self):
+        return self.positions
 
     def set_board(self, board):
         self.board = board
@@ -37,3 +42,6 @@ class Tile:
 
     def get_color(self):
         return self.color
+
+    def set_color(self, color):
+        self.color = color
