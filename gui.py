@@ -19,11 +19,17 @@ class MainWindow(tk.Frame):
             command=lambda puzzle_name='input_checkerboard.txt': self.create_window(puzzle_name)
         )
         self.button.pack(side="top")
+        self.button = tk.Button(
+            self, text="Puzzle 3",
+            command=lambda puzzle_name='pentominoes3x20.txt': self.create_window(puzzle_name)
+        )
+        self.button.pack(side="top")
 
     def create_window(self, puzzle_name):
         t = tk.Toplevel(self)
         t.wm_title("Puzzle: %s" % puzzle_name)
-        content = self.open_puzzle(puzzle_name)
+        content = FileReader.read_file(puzzle_name)
+        puzzle_pieces = self.get_puzzle_pieces(content)
         board = tk.Canvas(t, bg="grey", height=250, width=500)
         org_x1 = 10
         org_x2 = 20
@@ -80,9 +86,7 @@ class MainWindow(tk.Frame):
         board.pack()
         board.pack(side="top", fill="both", expand=True, padx=100, pady=100)
 
-    def open_puzzle(self, puzzle_name):
-        content = FileReader.read_file(puzzle_name)
-        #import pdb; pdb.set_trace()
+    def get_puzzle_pieces(self, content):
         return content
 
 if __name__ == "__main__":
