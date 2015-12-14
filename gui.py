@@ -1,7 +1,9 @@
 #!/usr/bin/python
 
 import Tkinter as tk
-import FileReader
+import FileReader as fileReader
+from tile import Tile
+from tile import Letter
 
 
 class MainWindow(tk.Frame):
@@ -28,7 +30,7 @@ class MainWindow(tk.Frame):
     def create_window(self, puzzle_name):
         t = tk.Toplevel(self)
         t.wm_title("Puzzle: %s" % puzzle_name)
-        content = FileReader.read_file(puzzle_name)
+        content = fileReader.read_file(puzzle_name)
         puzzle_pieces = self.get_puzzle_pieces(content)
         board = tk.Canvas(t, bg="grey", height=250, width=500)
         org_x1 = 10
@@ -87,7 +89,20 @@ class MainWindow(tk.Frame):
         board.pack(side="top", fill="both", expand=True, padx=100, pady=100)
 
     def get_puzzle_pieces(self, content):
-        return content
+        all_tiles = []
+        tile = Tile([])
+        letter_position_y = 0;
+        for line in content:
+            letter_position_x = 0
+            for letter in line:
+                if letter != ' ':
+                    new_letter = Letter([letter_position_x, letter_position_y])
+                letter_position_x = letter_position_x + 1
+            letter_position_y = letter_position_y + 1
+
+        all_tiles.append(tile)
+        #import pdb; pdb.set_trace()
+        return all_tiles
 
 if __name__ == "__main__":
     root = tk.Tk()
