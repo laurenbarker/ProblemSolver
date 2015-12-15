@@ -4,6 +4,7 @@ import Tkinter as tk
 import FileReader as fileReader
 from tile import Piece
 from tile import Tile
+from tile import combine_pieces
 
 
 class MainWindow(tk.Frame):
@@ -119,8 +120,10 @@ class MainWindow(tk.Frame):
             tile_position_y = tile_position_y + 1
 
         # searches through list of tiles to find pieces
+        piece_to_tile = {}
         for tile in all_tiles:
             position = tile.get_position()
+            str_position = str(position)
             check_position_up = [position[0], position[1] - 1]
             check_position_left = [position[0] - 1, position[1]]
             check_position_up_right = [position[0] + 1, position[1] - 1]
@@ -130,9 +133,25 @@ class MainWindow(tk.Frame):
                     blocks = piece.get_positions()
                     if check_position_up in blocks or check_position_left in blocks or check_position_up_right in blocks:
                         piece.add_block(tile)
+                        if str_position in piece_to_tile:
+                            # combine current piece and piece with same tile
+                            # remove both from all_pieces and add new_piece
+                            conflict_piece = piece_to_tile[str_position]
+                            new_piece = combine_pieces(piece, conflict_piece)
+                            all_pieces.remove(piece)
+                            all_pieces.remove(conflict_piece)
+                            all_pieces.append(new_piece)
+
+                            piece_to_tile[str_position] = new_piece
+                        else:
+                            piece_to_tile[str_position] = piece
             else:
-                piece = Piece(tile)
+                piece = Piece([tile])
                 all_pieces.append(piece)
+                piece_to_tile[str_position] = piece
+
+        for key in all_pieces:
+            print key.get_size()
 
         # searches through list of pieces to find the board (largest piece)
         largest_piece_index = 0
@@ -146,7 +165,8 @@ class MainWindow(tk.Frame):
 
         all_pieces[largest_piece_index].set_board(True)
 
-        # import pdb; pdb.set_trace()
+
+        #import pdb; pdb.set_trace()
         return all_pieces
 
 if __name__ == "__main__":

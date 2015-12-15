@@ -3,14 +3,19 @@
 
 class Piece:
 
-    def __init__(self, block):
+    def __init__(self, blocks):
         self.board = False
-        self.blocks = [block]
+        self.blocks = blocks
         self.size = 1
-        self.positions = [block.get_position()]
+        self.positions = []
+        for block in blocks:
+            self.positions.append(block.get_position())
 
     def get_blocks(self):
         return self.blocks
+
+    def set_blocks(self, blocks):
+        self.blocks = blocks
 
     def add_block(self, block):
         if block not in self.blocks:
@@ -30,6 +35,15 @@ class Piece:
     def increment_size(self):
         self.size = self.size + 1
 
+    def set_size(self, size):
+        self.size = size
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.__dict__ == other.__dict__
+        else:
+            return False
+
 
 class Tile:
 
@@ -45,3 +59,21 @@ class Tile:
 
     def set_color(self, color):
         self.color = color
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.__dict__ == other.__dict__
+        else:
+            return False
+
+
+def combine_pieces(piece1, piece2):
+    blocks1 = piece1.get_blocks()
+    blocks2 = piece2.get_blocks()
+    new_blocks = blocks1
+    for block in blocks2:
+        if block not in new_blocks:
+            new_blocks.append(block)
+    new_piece = Piece(new_blocks)
+    new_piece.set_size(len(new_blocks))
+    return new_piece
