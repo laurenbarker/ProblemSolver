@@ -5,6 +5,7 @@ import FileReader as fileReader
 from tile import Piece
 from tile import Tile
 from tile import combine_pieces
+from tile import zero_pieces
 
 
 class MainWindow(tk.Frame):
@@ -13,17 +14,17 @@ class MainWindow(tk.Frame):
     def __init__(self, *args, **kwargs):
         tk.Frame.__init__(self, *args, **kwargs)
         self.button = tk.Button(
-            self, text="Puzzle 1",
+            self, text="Small Puzzle",
             command=lambda puzzle_name='input_small.txt': self.create_window(puzzle_name)
         )
         self.button.pack(side="top")
         self.button = tk.Button(
-            self, text="Puzzle 2",
+            self, text="Checkerboard",
             command=lambda puzzle_name='input_checkerboard.txt': self.create_window(puzzle_name)
         )
         self.button.pack(side="top")
         self.button = tk.Button(
-            self, text="Puzzle 3",
+            self, text="Pentominoes 3x20",
             command=lambda puzzle_name='pentominoes3x20.txt': self.create_window(puzzle_name)
         )
         self.button.pack(side="top")
@@ -32,8 +33,19 @@ class MainWindow(tk.Frame):
         t = tk.Toplevel(self)
         t.wm_title("Puzzle: %s" % puzzle_name)
         content = fileReader.read_file(puzzle_name)
-        puzzle_pieces = self.get_puzzle_pieces(content)
-        board = tk.Canvas(t, bg="grey", height=250, width=500)
+
+        puzzle_pieces_and_board = self.get_puzzle_pieces(content)
+        puzzle_pieces = puzzle_pieces_and_board[0]
+        game_board = puzzle_pieces_and_board[1]
+
+        board = tk.Canvas(t, bg="grey", height=350, width=600)
+
+        board.button = tk.Button(
+            t, text="Solve Puzzle",
+            command=lambda puzzle_pieces=puzzle_pieces, game_board=game_board: self.solve_puzzle(puzzle_pieces, game_board)
+        )
+        board.button.pack(side="top")
+
         org_x1 = 10
         org_x2 = 20
         org_x3 = 20
@@ -87,7 +99,7 @@ class MainWindow(tk.Frame):
             x4 = org_x4
 
         board.pack()
-        board.pack(side="top", fill="both", expand=True, padx=100, pady=100)
+        board.pack(side="top", fill="both", expand=True, padx=50, pady=50)
 
     # create list of x values used for a tile object
     # remove x values from list once a grey square on the x value
@@ -150,8 +162,9 @@ class MainWindow(tk.Frame):
                 all_pieces.append(piece)
                 piece_to_tile[str_position] = piece
 
-        for key in all_pieces:
-            print key.get_size()
+        # for key in all_pieces:
+        #     print key.get_size()
+        all_pieces = zero_pieces(all_pieces)
 
         # searches through list of pieces to find the board (largest piece)
         largest_piece_index = 0
@@ -163,11 +176,16 @@ class MainWindow(tk.Frame):
                 largest_size = piece.get_size()
             piece_index = piece_index + 1
 
-        all_pieces[largest_piece_index].set_board(True)
+        board = all_pieces[largest_piece_index]
+        board.set_board(True)
+        all_pieces.remove(board)
 
+        # import pdb; pdb.set_trace()
 
-        #import pdb; pdb.set_trace()
-        return all_pieces
+        return [all_pieces, board]
+
+    def solve_puzzle(self, puzzle_pieces, game_board):
+        return []
 
 if __name__ == "__main__":
     root = tk.Tk()

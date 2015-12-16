@@ -16,6 +16,9 @@ class Piece:
 
     def set_blocks(self, blocks):
         self.blocks = blocks
+        self.positions = []
+        for block in blocks:
+            self.positions.append(block.get_position())
 
     def add_block(self, block):
         if block not in self.blocks:
@@ -24,7 +27,7 @@ class Piece:
             self.positions.append(block.get_position())
 
     def get_positions(self):
-        return self.positions
+        return sorted(self.positions)
 
     def set_board(self, board):
         self.board = board
@@ -54,6 +57,9 @@ class Tile:
     def get_position(self):
         return self.position
 
+    def set_position(self, position):
+        self.position = position
+
     def get_color(self):
         return self.color
 
@@ -77,3 +83,33 @@ def combine_pieces(piece1, piece2):
     new_piece = Piece(new_blocks)
     new_piece.set_size(len(new_blocks))
     return new_piece
+
+
+def zero_pieces(pieces):
+    zeroed_pieces = []
+    for piece in pieces:
+        piece_blocks = sorted(piece.get_positions())
+        y_list = []
+        for y in piece_blocks:
+            y_list.append(y[1])
+        first_piece = piece_blocks[0]
+        value_x = first_piece[0]
+        value_y = sorted(y_list)[0]
+        new_blocks = []
+        for block in piece.get_blocks():
+            new_position_x = block.get_position()[0] - value_x
+            new_position_y = block.get_position()[1] - value_y
+            block.set_position([new_position_x, new_position_y])
+            new_blocks.append(block)
+        piece.set_blocks(new_blocks)
+        zeroed_pieces.append(piece)
+
+    return zeroed_pieces
+
+
+def add_rotations(pieces):
+    return 0
+
+
+def add_reflections(pieces):
+    return 0
