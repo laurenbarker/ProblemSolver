@@ -10,7 +10,7 @@ class Piece:
         self.positions = []
         self.rotations = []
         self.reflections = []
-        self.locations = {}
+        self.locations = []
         for block in blocks:
             self.positions.append(block.get_position())
 
@@ -201,7 +201,7 @@ def find_locations(pieces, board, max_x, max_y):
 
         # each rotation for a piece
         for rotation in rotations:
-            locations = {}
+            locations = []
             tiles_by_position = {}
             sorted_rotation = sorted(rotation.get_positions())
             for tile in rotation.get_blocks():
@@ -230,7 +230,7 @@ def find_locations(pieces, board, max_x, max_y):
                     if match is True:
                         first = board_space[0] - location[0]
                         second = board_space[1] - location[1]
-                        locations[number] = [[first, second], rotation.get_positions()]
+                        locations.append([[first, second], rotation.get_positions()])
                         number = number + 1
 
                     if counter[0] == max_x and counter[1] == max_y:

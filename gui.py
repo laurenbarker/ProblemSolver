@@ -1,7 +1,9 @@
 #!/usr/bin/python
 
 import Tkinter as tk
+from Tkinter import Label
 import random
+import time
 
 import FileReader as fileReader
 from tile import Piece
@@ -200,6 +202,7 @@ class MainWindow(tk.Frame):
         max_x = x_list[len(x_list) - 1]
         max_y = y_list[len(y_list) - 1]
 
+        start = time.time()
         num_locations = find_locations(puzzle_pieces, game_board, max_x, max_y)
 
         number_of_possibilities = []
@@ -209,32 +212,52 @@ class MainWindow(tk.Frame):
         number_of_possibilities = sorted(number_of_possibilities)
 
         solution = []
+        number_of_solutions = 0
 
         # add board position to orig positions and remove from board
         temp_board = game_board.get_positions()
         while len(temp_board) > 0:
             for x in number_of_possibilities:
                 for piece in num_locations[x]:
-                    first_piece = piece.get_locations()[0]
-                    x_value = first_piece[0][0]
-                    y_value = first_piece[0][1]
-                    all_locations = []
-                    for location in first_piece[1]:
-                        new_x = location[0] + x_value
-                        new_y = location[1] + y_value
-                        all_locations.append([new_x, new_y])
+                    # import pdb; pdb.set_trace()
+                    for first_piece in piece.get_locations():
+                        x_value = first_piece[0][0]
+                        y_value = first_piece[0][1]
+                        all_locations = []
+                        for location in first_piece[1]:
+                            new_x = location[0] + x_value
+                            new_y = location[1] + y_value
+                            all_locations.append([new_x, new_y])
 
-                    remove = 0
-                    for location in all_locations:
-                        if location in temp_board:
-                            remove = remove + 1
-                    if remove == len(all_locations):
-                        solution.append(all_locations)
+                        remove = 0
                         for location in all_locations:
-                            temp_board.remove(location)
+                            if location in temp_board:
+                                remove = remove + 1
+                        if remove == len(all_locations):
+                            solution.append(all_locations)
+                            for location in all_locations:
+                                temp_board.remove(location)
+                            break
+        number_of_solutions = number_of_solutions + 1
+        end = time.time()
 
         t = tk.Toplevel(self)
         t.wm_title("Puzzle Solution")
+
+        num_solutions_label = Label(t, text='Number of Solutions:')
+        num_solutions_label.pack()
+        num_solutions = Label(t, text=str(number_of_solutions))
+        num_solutions.pack(pady=5)
+
+        w = Label(t, text='CPU Time for 1 Solution:')
+        w.pack()
+        w = Label(t, text=str(end-start))
+        w.pack(pady=5)
+
+        w = Label(t, text='CPU Time for All Solution:')
+        w.pack()
+        w = Label(t, text=str(end-start))
+        w.pack(pady=5)
 
         board = tk.Canvas(t, bg="grey", height=150, width=300)
 
