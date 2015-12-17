@@ -10,6 +10,7 @@ class Piece:
         self.positions = []
         self.rotations = []
         self.reflections = []
+        self.locations = {}
         for block in blocks:
             self.positions.append(block.get_position())
 
@@ -38,6 +39,12 @@ class Piece:
 
     def get_reflections(self):
         return sorted(self.reflections)
+
+    def get_locations(self):
+        return self.locations
+
+    def set_locations(self, locations):
+        self.locations = locations
 
     def set_board(self, board):
         self.board = board
@@ -181,33 +188,70 @@ def find_locations(pieces, board, max_x, max_y):
         # does the piece physically fit on the board
         # do the colors of tiles match the color on board
         # is there another piece that could fit in between that and the wall
-    location_number = {}
-    board_blocks = sorted(board.get_blocks())
+    location_number = {} # dict piece and number
 
+    board_index = {}
+    for tile in board.get_blocks():
+        board_index[str(tile.get_position())] = tile
+
+    # each available piece
     for piece in pieces:
         number = 0
         rotations = piece.get_rotations()
 
+        # each rotation for a piece
         for rotation in rotations:
+            locations = {}
             tiles_by_position = {}
             sorted_rotation = sorted(rotation.get_positions())
             for tile in rotation.get_blocks():
                 tiles_by_position[str(tile.get_position())] = tile
 
             last_in_list = len(sorted_rotation) - 1
+            # check to see if piece will even fit on board at the location
             if sorted_rotation[last_in_list][0] <= max_x and sorted_rotation[last_in_list][1] <= max_y:
-                counter = 0
-                for spot in board_blocks:
-                    # traverse the board once all tiles of rotation have been checked
-                    if counter == 0:
-                        if tiles_by_position.get('[0, 0]') is not None:
-                            if tiles_by_position.get('[0, 0]').get_color() == spot.get_color():
-                                for location in sorted_rotation:
-                                    import pdb; pdb.set_trace()
-                                    # need to fix board indexing
-                                    if board[location[0], location[1]].get_color() == tiles_by_position.get('[' + location[0] + ', ' + location[1] + ']').get_color():
-                                        number = number + 1
+                counter = [0, 0]
+                column_counter = 0
+                # check each location on board for each rotation
+                while column_counter <= max_y:
+                    match = False
+                    for location in sorted_rotation:
+                        board_space = [counter[0] + location[0], counter[1] + location[1]]
+                        if board_index.get(str(board_space)) is not None:
+                            if board_index.get(str(board_space)).get_color() == tiles_by_position.get(str(location)).get_color():
+                                match = True
+                            else:
+                                match = False
+                                break
+                        else:
+                            match = False
+                            break
 
-            # import pdb; pdb.set_trace()
+                    if match is True:
+                        print board_space
+                        print location
+                        print sorted_rotation
+                        if len(sorted_rotation) == 6:
+                            import pdb; pdb.set_trace()
+                        locations[number] = [board_space, location]
+                        number = number + 1
 
-    return {}
+                    if counter[0] == max_x and counter[1] == max_y:
+                        break
+                    elif counter[0] == max_x:
+                        column_counter = column_counter + 1
+                        counter[0] = 0
+                        counter[1] = column_counter
+                    else:
+                        counter[0] = counter[0] + 1
+            # piece.set_locations(locations)
+
+            if location_number.get(number) is not None:
+                if piece not in location_number[number]:
+                    location_number[number].append(piece)
+            else:
+                location_number[number] = [piece]
+
+        # import pdb; pdb.set_trace()
+
+    return location_number
