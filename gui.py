@@ -1,6 +1,8 @@
 #!/usr/bin/python
 
 import Tkinter as tk
+import random
+
 import FileReader as fileReader
 from tile import Piece
 from tile import Tile
@@ -40,6 +42,9 @@ class MainWindow(tk.Frame):
         game_board = puzzle_pieces_and_board[1]
 
         board = tk.Canvas(t, bg="grey", height=350, width=600)
+
+        color = ["red", "orange", "yellow", "green", "blue", "violet"]
+        # random.choice(color)
 
         board.button = tk.Button(
             t, text="Solve Puzzle",
@@ -181,7 +186,7 @@ class MainWindow(tk.Frame):
         board.set_board(True)
         all_pieces.remove(board)
 
-        import pdb; pdb.set_trace()
+        # import pdb; pdb.set_trace()
 
         return [all_pieces, board]
 
@@ -197,66 +202,79 @@ class MainWindow(tk.Frame):
 
         num_locations = find_locations(puzzle_pieces, game_board, max_x, max_y)
 
-        most_complex_piece = min(num_locations, key=num_locations.get)
+        number_of_possibilities = []
+        for key in num_locations:
+            number_of_possibilities.append(key)
 
-        import pdb; pdb.set_trace()
+        number_of_possibilities = sorted(number_of_possibilities)
+
+        solution = []
+
+        # add board position to orig positions and remove from board
+        temp_board = game_board.get_positions()
+        while len(temp_board) > 0:
+            for x in number_of_possibilities:
+                for piece in num_locations[x]:
+                    first_piece = piece.get_locations()[0]
+                    x_value = first_piece[0][0]
+                    y_value = first_piece[0][1]
+                    all_locations = []
+                    for location in first_piece[1]:
+                        new_x = location[0] + x_value
+                        new_y = location[1] + y_value
+                        all_locations.append([new_x, new_y])
+
+                    remove = 0
+                    for location in all_locations:
+                        if location in temp_board:
+                            remove = remove + 1
+                    if remove == len(all_locations):
+                        solution.append(all_locations)
+                        for location in all_locations:
+                            temp_board.remove(location)
+
+        t = tk.Toplevel(self)
+        t.wm_title("Puzzle Solution")
+
+        board = tk.Canvas(t, bg="grey", height=150, width=300)
+
+        color = ['red', 'orange', 'yellow', 'green', 'blue', 'violet']
+
+        org_x1 = 10
+        org_x2 = 20
+        org_x3 = 20
+        org_x4 = 10
+        x1 = org_x1
+        y1 = 10
+        x2 = org_x2
+        y2 = 10
+        x3 = org_x3
+        y3 = 20
+        x4 = org_x4
+        y4 = 20
+
+        for piece in solution:
+            piece_color = random.choice(color)
+            for tile in piece:
+                # import pdb; pdb.set_trace()
+                tile_1 = tile[0] + 1
+                tile_2 = tile[1] + 1
+                board.create_polygon(
+                    x1 + (x1 * tile_1),
+                    y1 + (x1 * tile_2),
+                    x2 + (x1 * tile_1),
+                    y2 + (x1 * tile_2),
+                    x3 + (x1 * tile_1),
+                    y3 + (x1 * tile_2),
+                    x4 + (x1 * tile_1),
+                    y4 + (x1 * tile_2),
+                    fill=piece_color
+                )
+
+        board.pack()
+        board.pack(side="top", fill="both", expand=True, padx=50, pady=50)
 
         return []
-
-
-def backtracking(choice_points, choices, assignable):
-    """
-    choice_points: is a list of the choice points. Each of them will be
-        assigned to a single choice for each solution.
-    choices: is a list of choices.
-    assignable: is a function that declare if a choice is assignable to a choice point.
-          It needs three arguments:
-               def assignable(choice, choice_points, solutions):
-          In particular, solutions store the assignments of the previous choice points.
-          It seems like that {cp0:c0, cp1:c1, ...} where cpI is a choice point and cI is a choice.
-    """
-
-    N = len(choices)
-    M = len(choice_points)
-
-    # solutions is the dict that has for each choice point (key) a choice (value)
-    solutions = {}
-
-    cp = 0
-    c = 0
-    backtrack = False
-    end = False
-
-    while(not end):
-        # forward
-        while (not backtrack):
-            if(assignable(cp, c, solutions)):
-                solutions[cp] = c
-                if(cp == M-1):
-                    yield {choice_points[k]: choices[v] for k, v in solutions.iteritems()}
-                    del solutions[cp]
-                    if not c == N-1:
-                        c += 1
-                    else:
-                        backtrack = True
-                else:
-                    cp += 1
-                    c = 0
-            elif(c != N-1):
-                c += 1
-            else:
-                backtrack = True
-
-        # backward
-        end = (cp == 0)
-        while(backtrack and not end):
-            cp -= 1
-            c = solutions.pop(cp)
-            if(not c == N-1):
-                c += 1
-                backtrack = False
-            elif(cp == 0):
-                end = True
 
 if __name__ == "__main__":
     root = tk.Tk()

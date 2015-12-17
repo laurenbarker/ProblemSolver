@@ -6,7 +6,7 @@ class Piece:
     def __init__(self, blocks):
         self.board = False
         self.blocks = blocks
-        self.size = 1
+        self.size = len(blocks)
         self.positions = []
         self.rotations = []
         self.reflections = []
@@ -138,15 +138,15 @@ def add_rotations(blocks, positions, piece):
     for y in positions:
         y_list.append(y[1])
         x_list.append(y[0])
-    max_x = x_list[len(x_list) - 1]
-    max_y = y_list[len(y_list) - 1]
+    max_x = sorted(x_list)[len(x_list) - 1]
+    max_y = sorted(y_list)[len(y_list) - 1]
 
     # first rotation right
     for block in blocks:
         position = block.get_position()
         position_x = position[0]
         position_y = position[1]
-        new_position = Tile([position_y,  max_x - position_x])
+        new_position = Tile([max_y - position_y,  position_x])
         new_position.set_color(block.get_color())
         new_positions_1.append(new_position)
     piece_1 = Piece(sorted(new_positions_1))
@@ -157,7 +157,7 @@ def add_rotations(blocks, positions, piece):
         position = block.get_position()
         position_x = position[0]
         position_y = position[1]
-        new_position = Tile([position_y,  max_y - position_x])
+        new_position = Tile([max_x - position_y,  position_x])
         new_position.set_color(block.get_color())
         new_positions_2.append(new_position)
     piece_2 = Piece(sorted(new_positions_2))
@@ -168,12 +168,12 @@ def add_rotations(blocks, positions, piece):
         position = block.get_position()
         position_x = position[0]
         position_y = position[1]
-        new_position = Tile([position_y,  max_x - position_x])
+        new_position = Tile([max_y - position_y, position_x])
         new_position.set_color(block.get_color())
         new_positions_3.append(new_position)
     piece_3 = Piece(sorted(new_positions_3))
     rotations.append(piece_3)
-    # import pdb; pdb.set_trace()
+
     return rotations
 
 
@@ -228,12 +228,9 @@ def find_locations(pieces, board, max_x, max_y):
                             break
 
                     if match is True:
-                        print board_space
-                        print location
-                        print sorted_rotation
-                        if len(sorted_rotation) == 6:
-                            import pdb; pdb.set_trace()
-                        locations[number] = [board_space, location]
+                        first = board_space[0] - location[0]
+                        second = board_space[1] - location[1]
+                        locations[number] = [[first, second], rotation.get_positions()]
                         number = number + 1
 
                     if counter[0] == max_x and counter[1] == max_y:
@@ -244,13 +241,13 @@ def find_locations(pieces, board, max_x, max_y):
                         counter[1] = column_counter
                     else:
                         counter[0] = counter[0] + 1
-            # piece.set_locations(locations)
+            rotation.set_locations(locations)
 
-            if location_number.get(number) is not None:
+            if location_number.get(number) is not None and len(locations) > 0:
                 if piece not in location_number[number]:
-                    location_number[number].append(piece)
-            else:
-                location_number[number] = [piece]
+                    location_number[number].append(rotation)
+            elif number != 0 and len(locations) > 0:
+                location_number[number] = [rotation]
 
         # import pdb; pdb.set_trace()
 
