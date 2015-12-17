@@ -6,6 +6,7 @@ from tile import Piece
 from tile import Tile
 from tile import combine_pieces
 from tile import zero_pieces
+from tile import find_locations
 
 
 class MainWindow(tk.Frame):
@@ -185,6 +186,21 @@ class MainWindow(tk.Frame):
         return [all_pieces, board]
 
     def solve_puzzle(self, puzzle_pieces, game_board):
+
+        y_list = []
+        x_list = []
+        for value in game_board.get_positions():
+            y_list.append(value[1])
+            x_list.append(value[0])
+        max_x = x_list[len(x_list) - 1]
+        max_y = y_list[len(y_list) - 1]
+
+        num_locations = find_locations(puzzle_pieces, game_board, max_x, max_y)
+
+        most_complex_piece = max(num_locations, key=num_locations.get)
+
+        # import pdb; pdb.set_trace()
+
         return []
 
 if __name__ == "__main__":

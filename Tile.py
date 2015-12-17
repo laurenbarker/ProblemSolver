@@ -8,6 +8,8 @@ class Piece:
         self.blocks = blocks
         self.size = 1
         self.positions = []
+        self.rotations = []
+        self.reflections = []
         for block in blocks:
             self.positions.append(block.get_position())
 
@@ -19,6 +21,8 @@ class Piece:
         self.positions = []
         for block in blocks:
             self.positions.append(block.get_position())
+        self.rotations = add_rotations(blocks, self.positions, self)
+        self.reflections = add_reflections(blocks)
 
     def add_block(self, block):
         if block not in self.blocks:
@@ -28,6 +32,12 @@ class Piece:
 
     def get_positions(self):
         return sorted(self.positions)
+
+    def get_rotations(self):
+        return sorted(self.rotations)
+
+    def get_reflections(self):
+        return sorted(self.reflections)
 
     def set_board(self, board):
         self.board = board
@@ -107,9 +117,97 @@ def zero_pieces(pieces):
     return zeroed_pieces
 
 
-def add_rotations(pieces):
-    return 0
+def add_rotations(blocks, positions, piece):
+    # [r, c] --> [dist from max_x, dist from max_y]
+    rotations = [piece]
+    if len(positions) == 1:
+        return rotations
+
+    new_positions_1 = []
+    new_positions_2 = []
+    new_positions_3 = []
+    y_list = []
+    x_list = []
+    for y in positions:
+        y_list.append(y[1])
+        x_list.append(y[0])
+    max_x = x_list[len(x_list) - 1]
+    max_y = y_list[len(y_list) - 1]
+
+    # first rotation right
+    for block in blocks:
+        position = block.get_position()
+        position_x = position[0]
+        position_y = position[1]
+        new_position = Tile([position_y,  max_x - position_x])
+        new_position.set_color(block.get_color())
+        new_positions_1.append(new_position)
+    piece_1 = Piece(sorted(new_positions_1))
+    rotations.append(piece_1)
+
+    # second rotation right
+    for block in new_positions_1:
+        position = block.get_position()
+        position_x = position[0]
+        position_y = position[1]
+        new_position = Tile([position_y,  max_y - position_x])
+        new_position.set_color(block.get_color())
+        new_positions_2.append(new_position)
+    piece_2 = Piece(sorted(new_positions_2))
+    rotations.append(piece_2)
+
+    # third rotation right
+    for block in new_positions_2:
+        position = block.get_position()
+        position_x = position[0]
+        position_y = position[1]
+        new_position = Tile([position_y,  max_x - position_x])
+        new_position.set_color(block.get_color())
+        new_positions_3.append(new_position)
+    piece_3 = Piece(sorted(new_positions_3))
+    rotations.append(piece_3)
+    # import pdb; pdb.set_trace()
+    return rotations
 
 
-def add_reflections(pieces):
-    return 0
+def add_reflections(positions):
+    return []
+
+
+def find_locations(pieces, board, max_x, max_y):
+    # returns dictionary: key = piece, value = # of locations it can be placed
+
+    # Criteria for if it can be place in a location
+        # does the piece physically fit on the board
+        # do the colors of tiles match the color on board
+        # is there another piece that could fit in between that and the wall
+    location_number = {}
+    board_blocks = sorted(board.get_blocks())
+
+    for piece in pieces:
+        number = 0
+        rotations = piece.get_rotations()
+
+        for rotation in rotations:
+            tiles_by_position = {}
+            sorted_rotation = sorted(rotation.get_positions())
+            for tile in rotation.get_blocks():
+                tiles_by_position[str(tile.get_position())] = tile
+
+            last_in_list = len(sorted_rotation) - 1
+            if sorted_rotation[last_in_list][0] <= max_x and sorted_rotation[last_in_list][1] <= max_y:
+                counter = 0
+                for spot in board_blocks:
+                    # traverse the board once all tiles of rotation have been checked
+                    if counter == 0:
+                        if tiles_by_position.get('[0, 0]') is not None:
+                            if tiles_by_position.get('[0, 0]').get_color() == spot.get_color():
+                                for location in sorted_rotation:
+                                    import pdb; pdb.set_trace()
+                                    # need to fix board indexing
+                                    if board[location[0], location[1]].get_color() == tiles_by_position.get('[' + location[0] + ', ' + location[1] + ']').get_color():
+                                        number = number + 1
+
+            # import pdb; pdb.set_trace()
+
+    return {}
