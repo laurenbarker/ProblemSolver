@@ -11,6 +11,7 @@ from tile import Tile
 from tile import combine_pieces
 from tile import zero_pieces
 from tile import find_locations
+from tile import find_location
 
 
 class MainWindow(tk.Frame):
@@ -253,40 +254,40 @@ class MainWindow(tk.Frame):
         max_y = y_list[len(y_list) - 1]
 
         start = time.time()
-        total_piece_coverage = 0
-        for puzzle in puzzle_pieces:
-            total_piece_coverage = total_piece_coverage + puzzle.get_size()
 
         num_locations = find_locations(puzzle_pieces, game_board, max_x, max_y)
+        total_piece_coverage = num_locations.keys()[0]
 
         # import pdb; pdb.set_trace()
         # need to change to check after the locations are retrieved
-        if total_piece_coverage < len(game_board.get_positions()):
+        if total_piece_coverage < len(game_board.get_positions()) or game_board.get_positions() == []:
             end = time.time()
             t = tk.Toplevel(self)
             t.wm_title("Puzzle Solution")
 
             num_solutions_label = Label(t, text='There are not enough pieces to solve this puzzle.')
-            num_solutions_label.pack()
+            num_solutions_label.pack(padx=10, pady=10)
 
-            board = tk.Canvas(t, bg="grey", height=150, width=300)
+            num_solutions_label = Label(t, text='Determined in %s' % str(end-start))
+            num_solutions_label.pack(padx=10, pady=10)
+
             return
 
-        number_of_possibilities = []
-        for key in num_locations:
-            number_of_possibilities.append(key)
-
-        number_of_possibilities = sorted(number_of_possibilities)
+        number_of_possibilities = sorted(num_locations[total_piece_coverage][0].keys())
 
         solution = []
         number_of_solutions = 0
+        suicide = False
 
         # add board position to orig positions and remove from board
         temp_board = game_board.get_positions()
         while len(temp_board) > 0:
             for x in number_of_possibilities:
-                for piece in num_locations[x]:
-                    # import pdb; pdb.set_trace()
+                if x == 1:
+                    suicide = True
+                trigger = True
+                for piece in num_locations[total_piece_coverage][0][x]:
+
                     for first_piece in piece.get_locations():
                         x_value = first_piece[0][0]
                         y_value = first_piece[0][1]
@@ -301,10 +302,18 @@ class MainWindow(tk.Frame):
                             if location in temp_board:
                                 remove = remove + 1
                         if remove == len(all_locations):
+
+                            trigger = False
                             solution.append(all_locations)
                             for location in all_locations:
                                 temp_board.remove(location)
                             break
+
+                if suicide == True and trigger == True:
+                    print temp_board
+                    end = time.time()
+                    self.no_solution(end, start)
+                    return
         number_of_solutions = number_of_solutions + 1
         end = time.time()
 
@@ -365,6 +374,19 @@ class MainWindow(tk.Frame):
         board.pack(side="top", fill="both", expand=True, padx=50, pady=50)
 
         return []
+
+    def no_solution(self, end_time, start_time):
+        t = tk.Toplevel(self)
+        t.wm_title("Puzzle Solution")
+
+        num_solutions_label = Label(t, text='There is no solution to this puzzle.')
+        num_solutions_label.pack(padx=10, pady=10)
+
+        num_solutions_label = Label(t, text='Determined in %s' % str(end_time-start_time))
+        num_solutions_label.pack(padx=10, pady=10)
+
+        return
+
 
 if __name__ == "__main__":
     root = tk.Tk()
