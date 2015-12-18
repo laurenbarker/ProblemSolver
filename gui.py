@@ -4,6 +4,7 @@ import Tkinter as tk
 from Tkinter import Label
 import random
 import time
+import itertools
 
 import FileReader as fileReader
 from tile import Piece
@@ -290,13 +291,15 @@ class MainWindow(tk.Frame):
         # outer most row (for each frequency of occurance)
         temp_board_outer = game_board.get_positions()
         for x in number_of_possibilities:
+            # for piece_permutation in itertools.permutations(puzzle_pieces):
 
             # middle row (for each piece in occurance)
-            temp_board_middle = temp_board_outer
+            temp_board_middle = list(temp_board_outer)
             for piece in num_locations[x]:
+                # for piece in piece_permutation:
 
                 # rotation for each piece
-                temp_board_inner = temp_board_middle
+                temp_board_inner = list(temp_board_middle)
                 for rotation in piece.get_rotations():
                     # inner most row (for each location of piece)
 
@@ -315,23 +318,23 @@ class MainWindow(tk.Frame):
                             if location in temp_board_inner:
                                 remove = remove + 1
                         if remove == len(all_locations):
-                            prev_solution = temp_solution
+                            prev_solution = list(temp_solution)
                             temp_solution.append(all_locations)
                             for location in all_locations:
                                 temp_board_inner.remove(location)
 
                             if len(temp_board_inner) == 0:
-                                if first_flag == True:
+                                if first_flag is True:
                                     first_end = time.time()
-                                solutions.append(temp_solution)
+                                solutions.append([temp_solution])
                                 number_of_solutions = number_of_solutions + 1
-                                temp_board_inner = temp_board_middle
-                                temp_solution = prev_solution
+                                temp_board_inner = list(temp_board_middle)
+                                temp_solution = list(prev_solution)
                                 first_flag = False
-                            break
+                            # break
 
                 if len(temp_board_inner) != 0 and len(temp_solution) > 0:
-                    temp_board_middle = temp_board_inner
+                    temp_board_middle = list(temp_board_inner)
 
         end = time.time()
         if first_end == 0:
@@ -373,7 +376,8 @@ class MainWindow(tk.Frame):
         y4 = 20
 
         for solution in solutions:
-            for piece in solution:
+
+            for piece in solution[0]:
                 piece_color = random.choice(color)
                 for tile in piece:
                     # import pdb; pdb.set_trace()
@@ -390,6 +394,10 @@ class MainWindow(tk.Frame):
                         y4 + (x1 * tile_2),
                         fill=piece_color
                     )
+                x1 + (x1 * max_x)
+                x2 + (x1 * max_x)
+                x3 + (x1 * max_x)
+                x4 + (x1 * max_x)
 
         board.pack()
         board.pack(side="top", fill="both", expand=True, padx=50, pady=50)
