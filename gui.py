@@ -11,7 +11,6 @@ from tile import Tile
 from tile import combine_pieces
 from tile import zero_pieces
 from tile import find_locations
-from tile import find_location
 
 
 class MainWindow(tk.Frame):
@@ -255,12 +254,15 @@ class MainWindow(tk.Frame):
 
         start = time.time()
 
+        total_piece_size = 0
+        for piece in puzzle_pieces:
+            total_piece_size = total_piece_size + piece.get_size()
+
         num_locations = find_locations(puzzle_pieces, game_board, max_x, max_y)
-        total_piece_coverage = num_locations.keys()[0]
 
         # import pdb; pdb.set_trace()
         # need to change to check after the locations are retrieved
-        if total_piece_coverage < len(game_board.get_positions()) or game_board.get_positions() == []:
+        if total_piece_size < len(game_board.get_positions()) or game_board.get_positions() == []:
             end = time.time()
             t = tk.Toplevel(self)
             t.wm_title("Puzzle Solution")
@@ -273,22 +275,33 @@ class MainWindow(tk.Frame):
 
             return
 
-        number_of_possibilities = sorted(num_locations[total_piece_coverage][0].keys())
+        number_of_possibilities = sorted(num_locations.keys())
 
-        solution = []
+        solutions = []
+        temp_solution = []
         number_of_solutions = 0
-        suicide = False
+        first_flag = True
+        first_end = 0
+
+        # import pdb; pdb.set_trace()
 
         # add board position to orig positions and remove from board
-        temp_board = game_board.get_positions()
-        while len(temp_board) > 0:
-            for x in number_of_possibilities:
-                if x == 1:
-                    suicide = True
-                trigger = True
-                for piece in num_locations[total_piece_coverage][0][x]:
 
-                    for first_piece in piece.get_locations():
+        # outer most row (for each frequency of occurance)
+        temp_board_outer = game_board.get_positions()
+        for x in number_of_possibilities:
+
+            # middle row (for each piece in occurance)
+            temp_board_middle = temp_board_outer
+            for piece in num_locations[x]:
+
+                # rotation for each piece
+                temp_board_inner = temp_board_middle
+                for rotation in piece.get_rotations():
+                    # inner most row (for each location of piece)
+
+                    for first_piece in rotation.get_locations():
+
                         x_value = first_piece[0][0]
                         y_value = first_piece[0][1]
                         all_locations = []
@@ -299,23 +312,30 @@ class MainWindow(tk.Frame):
 
                         remove = 0
                         for location in all_locations:
-                            if location in temp_board:
+                            if location in temp_board_inner:
                                 remove = remove + 1
                         if remove == len(all_locations):
-
-                            trigger = False
-                            solution.append(all_locations)
+                            prev_solution = temp_solution
+                            temp_solution.append(all_locations)
                             for location in all_locations:
-                                temp_board.remove(location)
+                                temp_board_inner.remove(location)
+
+                            if len(temp_board_inner) == 0:
+                                if first_flag == True:
+                                    first_end = time.time()
+                                solutions.append(temp_solution)
+                                number_of_solutions = number_of_solutions + 1
+                                temp_board_inner = temp_board_middle
+                                temp_solution = prev_solution
+                                first_flag = False
                             break
 
-                if suicide == True and trigger == True:
-                    print temp_board
-                    end = time.time()
-                    self.no_solution(end, start)
-                    return
-        number_of_solutions = number_of_solutions + 1
+                if len(temp_board_inner) != 0 and len(temp_solution) > 0:
+                    temp_board_middle = temp_board_inner
+
         end = time.time()
+        if first_end == 0:
+            first_end = start
 
         t = tk.Toplevel(self)
         t.wm_title("Puzzle Solution")
@@ -327,10 +347,10 @@ class MainWindow(tk.Frame):
 
         w = Label(t, text='CPU Time for 1 Solution:')
         w.pack()
-        w = Label(t, text=str(end-start))
+        w = Label(t, text=str(first_end-start))
         w.pack(pady=5)
 
-        w = Label(t, text='CPU Time for All Solution:')
+        w = Label(t, text='CPU Time for All Solutions:')
         w.pack()
         w = Label(t, text=str(end-start))
         w.pack(pady=5)
@@ -352,23 +372,24 @@ class MainWindow(tk.Frame):
         x4 = org_x4
         y4 = 20
 
-        for piece in solution:
-            piece_color = random.choice(color)
-            for tile in piece:
-                # import pdb; pdb.set_trace()
-                tile_1 = tile[0] + 1
-                tile_2 = tile[1] + 1
-                board.create_polygon(
-                    x1 + (x1 * tile_1),
-                    y1 + (x1 * tile_2),
-                    x2 + (x1 * tile_1),
-                    y2 + (x1 * tile_2),
-                    x3 + (x1 * tile_1),
-                    y3 + (x1 * tile_2),
-                    x4 + (x1 * tile_1),
-                    y4 + (x1 * tile_2),
-                    fill=piece_color
-                )
+        for solution in solutions:
+            for piece in solution:
+                piece_color = random.choice(color)
+                for tile in piece:
+                    # import pdb; pdb.set_trace()
+                    tile_1 = tile[0] + 1
+                    tile_2 = tile[1] + 1
+                    board.create_polygon(
+                        x1 + (x1 * tile_1),
+                        y1 + (x1 * tile_2),
+                        x2 + (x1 * tile_1),
+                        y2 + (x1 * tile_2),
+                        x3 + (x1 * tile_1),
+                        y3 + (x1 * tile_2),
+                        x4 + (x1 * tile_1),
+                        y4 + (x1 * tile_2),
+                        fill=piece_color
+                    )
 
         board.pack()
         board.pack(side="top", fill="both", expand=True, padx=50, pady=50)

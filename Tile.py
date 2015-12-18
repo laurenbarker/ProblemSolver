@@ -256,71 +256,15 @@ def find_locations(pieces, board, max_x, max_y):
                     rotation_number[number].append(rotation)
             elif number != 0 and len(locations) > 0:
                 rotation_number[number] = [rotation]
-        total_number = total_number + piece.get_size()
 
-    if piece_number.get(total_number) is not None:
-        if piece not in piece_number[total_number]:
-            piece_number[total_number].append(rotation_number)
-    elif total_number != 0:
-        piece_number[total_number] = [rotation_number]
+        total_number = sum(rotation_number.keys())
+        # import pdb; pdb.set_trace()
+        if piece_number.get(total_number) is not None:
+            if piece not in piece_number[total_number]:
+                piece_number[total_number].append(piece)
+            rotation_number = {}
+        elif total_number != 0:
+            piece_number[total_number] = [piece]
+            rotation_number = {}
 
     return piece_number
-
-
-def find_location(piece, board, max_x, max_y):
-    import pdb; pdb.set_trace()
-    # dict piece and number
-    rotation_number = {}
-    board_index = {}
-    for tile in board.get_blocks():
-        board_index[str(tile.get_position())] = tile
-
-    # each rotation for a piece
-    for rotation in piece.get_rotations():
-        number = 0
-        locations = []
-        tiles_by_position = {}
-        sorted_rotation = sorted(rotation.get_positions())
-        for tile in rotation.get_blocks():
-            tiles_by_position[str(tile.get_position())] = tile
-
-        counter = [0, 0]
-        column_counter = 0
-        # check each location on board for each rotation
-        while column_counter <= max_y:
-            match = False
-            for location in sorted_rotation:
-                board_space = [counter[0] + location[0], counter[1] + location[1]]
-                if board_index.get(str(board_space)) is not None:
-                    if board_index.get(str(board_space)).get_color() == tiles_by_position.get(str(location)).get_color():
-                        match = True
-                    else:
-                        match = False
-                        break
-                else:
-                    match = False
-                    break
-
-            if match is True:
-                first = board_space[0] - location[0]
-                second = board_space[1] - location[1]
-                locations.append([[first, second], rotation.get_positions()])
-                number = number + 1
-
-            if counter[0] == max_x and counter[1] == max_y:
-                break
-            elif counter[0] == max_x:
-                column_counter = column_counter + 1
-                counter[0] = 0
-                counter[1] = column_counter
-            else:
-                counter[0] = counter[0] + 1
-        rotation.set_locations(locations)
-
-        if rotation_number.get(number) is not None:
-            if rotation not in rotation_number[number]:
-                rotation_number[number].append(rotation)
-        elif number != 0 and len(locations) > 0:
-            rotation_number[number] = [rotation]
-
-    return rotation_number
