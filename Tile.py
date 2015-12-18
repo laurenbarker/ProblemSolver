@@ -1,4 +1,5 @@
 #!/usr/bin/python
+import sys
 
 
 class Piece:
@@ -60,7 +61,7 @@ class Piece:
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
-            return self.__dict__ == other.__dict__
+            return self.get_positions() == other.get_positions()
         else:
             return False
 
@@ -84,6 +85,7 @@ class Tile:
         self.color = color
 
     def __eq__(self, other):
+        sys.setrecursionlimit(10000)
         if isinstance(other, self.__class__):
             return self.__dict__ == other.__dict__
         else:
@@ -187,8 +189,9 @@ def find_locations(pieces, board, max_x, max_y):
     # Criteria for if it can be place in a location
         # does the piece physically fit on the board
         # do the colors of tiles match the color on board
-        # is there another piece that could fit in between that and the wall
-    location_number = {} # dict piece and number
+
+    # dict piece and number
+    location_number = {}
 
     board_index = {}
     for tile in board.get_blocks():

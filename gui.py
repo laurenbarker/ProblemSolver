@@ -19,18 +19,68 @@ class MainWindow(tk.Frame):
     def __init__(self, *args, **kwargs):
         tk.Frame.__init__(self, *args, **kwargs)
         self.button = tk.Button(
-            self, text="Small Puzzle",
-            command=lambda puzzle_name='input_small.txt': self.create_window(puzzle_name)
+            self, text="Trivial",
+            command=lambda puzzle_name='input_files/input_small.txt': self.create_window(puzzle_name)
         )
         self.button.pack(side="top")
         self.button = tk.Button(
             self, text="Checkerboard",
-            command=lambda puzzle_name='input_checkerboard.txt': self.create_window(puzzle_name)
+            command=lambda puzzle_name='input_files/input_checkerboard.txt': self.create_window(puzzle_name)
         )
         self.button.pack(side="top")
         self.button = tk.Button(
             self, text="Pentominoes 3x20",
-            command=lambda puzzle_name='pentominoes3x20.txt': self.create_window(puzzle_name)
+            command=lambda puzzle_name='input_files/pentominoes3x20.txt': self.create_window(puzzle_name)
+        )
+        self.button.pack(side="top")
+        self.button = tk.Button(
+            self, text="Pentominoes 4x15",
+            command=lambda puzzle_name='input_files/pentominoes4x15.txt': self.create_window(puzzle_name)
+        )
+        self.button.pack(side="top")
+        self.button = tk.Button(
+            self, text="Pentominoes 5x12",
+            command=lambda puzzle_name='input_files/pentominoes5x12.txt': self.create_window(puzzle_name)
+        )
+        self.button.pack(side="top")
+        self.button = tk.Button(
+            self, text="Pentominoes 6x10",
+            command=lambda puzzle_name='input_files/pentominoes6x10.txt': self.create_window(puzzle_name)
+        )
+        self.button.pack(side="top")
+        self.button = tk.Button(
+            self, text="IQ Creator",
+            command=lambda puzzle_name='input_files/IQ_creator.txt': self.create_window(puzzle_name)
+        )
+        self.button.pack(side="top")
+        self.button = tk.Button(
+            self, text="Lucky Thirteen",
+            command=lambda puzzle_name='input_files/lucky13.txt': self.create_window(puzzle_name)
+        )
+        self.button.pack(side="top")
+        self.button = tk.Button(
+            self, text="Partial Cross",
+            command=lambda puzzle_name='input_files/partial_cross.txt': self.create_window(puzzle_name)
+        )
+        self.button.pack(side="top")
+        self.button = tk.Button(
+            self, text="Test 1",
+            command=lambda puzzle_name='input_files/test1.txt': self.create_window(puzzle_name)
+        )
+        self.button.pack(side="top")
+        self.button = tk.Button(
+            self, text="Test 2",
+            command=lambda puzzle_name='input_files/test2.txt': self.create_window(puzzle_name)
+        )
+        self.button.pack(side="top")
+        self.button = tk.Button(
+            self, text="13 Holes",
+            command=lambda puzzle_name='input_files/thirteen_holes.txt': self.create_window(puzzle_name)
+        )
+        self.button.pack(side="top")
+        self.button = tk.Button(
+            self, text="Your Puzzle",
+            command=lambda puzzle_name='input_files/your_puzzle.txt': self.create_window(puzzle_name)
         )
         self.button.pack(side="top")
 
@@ -203,7 +253,24 @@ class MainWindow(tk.Frame):
         max_y = y_list[len(y_list) - 1]
 
         start = time.time()
+        total_piece_coverage = 0
+        for puzzle in puzzle_pieces:
+            total_piece_coverage = total_piece_coverage + puzzle.get_size()
+
         num_locations = find_locations(puzzle_pieces, game_board, max_x, max_y)
+
+        # import pdb; pdb.set_trace()
+        # need to change to check after the locations are retrieved
+        if total_piece_coverage < len(game_board.get_positions()):
+            end = time.time()
+            t = tk.Toplevel(self)
+            t.wm_title("Puzzle Solution")
+
+            num_solutions_label = Label(t, text='There are not enough pieces to solve this puzzle.')
+            num_solutions_label.pack()
+
+            board = tk.Canvas(t, bg="grey", height=150, width=300)
+            return
 
         number_of_possibilities = []
         for key in num_locations:
