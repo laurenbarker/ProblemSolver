@@ -89,7 +89,69 @@ class Tile:
         self.color = color
 
     def __eq__(self, other):
-        sys.setrecursionlimit(10000)
+        if isinstance(other, self.__class__):
+            return self.__dict__ == other.__dict__
+        else:
+            return False
+
+
+class TempBoard:
+
+    def __init__(self, positions):
+        self.positions = positions
+
+    def get_positions(self):
+        return self.positions
+
+    def set_positions(self, positions):
+        self.positions = list(positions)
+
+    def remove_locations(self, all_locations):
+        for location in all_locations:
+            self.positions.remove(location)
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.__dict__ == other.__dict__
+        else:
+            return False
+
+
+class SolutionList:
+
+    def __init__(self, reset_board, temp_board_inner, temp_board_outer, num_locations):
+        self.solutions = []
+        self.number_of_solutions = 0
+        self.first_end = 0
+        self.counter = 0
+        self.recursion_counter = 0
+        self.temp_solution = []
+        self.num_locations = num_locations
+        self.temp_board_inner = temp_board_inner
+        self.temp_board_outer = temp_board_outer
+        self.reset_board = reset_board
+
+    def get_solutions(self):
+        return self.solutions
+
+    def set_solution(self, solutions):
+        self.solutions = solutions
+        self.number_of_solutions = len(solutions)
+
+    def add_solution(self, solution):
+        self.solutions.append(solution)
+        self.number_of_solutions = self.number_of_solutions + 1
+
+    def set_first_end(self, time):
+        self.first_end = time
+
+    def get_first_end(self):
+        return self.first_end
+
+    def update_counter(self):
+        self.counter = self.counter + 1
+
+    def __eq__(self, other):
         if isinstance(other, self.__class__):
             return self.__dict__ == other.__dict__
         else:
@@ -258,7 +320,7 @@ def find_locations(pieces, board, max_x, max_y):
                 rotation_number[number] = [rotation]
 
         total_number = sum(rotation_number.keys())
-        # import pdb; pdb.set_trace()
+        #  import pdb; pdb.set_trace()
         if piece_number.get(total_number) is not None:
             if piece not in piece_number[total_number]:
                 piece_number[total_number].append(piece)

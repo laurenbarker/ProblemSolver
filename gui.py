@@ -4,11 +4,12 @@ import Tkinter as tk
 from Tkinter import Label
 import random
 import time
-import itertools
 
 import FileReader as fileReader
 from tile import Piece
 from tile import Tile
+from tile import TempBoard
+from tile import SolutionList
 from tile import combine_pieces
 from tile import zero_pieces
 from tile import find_locations
@@ -261,7 +262,7 @@ class MainWindow(tk.Frame):
 
         num_locations = find_locations(puzzle_pieces, game_board, max_x, max_y)
 
-        # import pdb; pdb.set_trace()
+        import pdb; pdb.set_trace()
         # need to change to check after the locations are retrieved
         if total_piece_size < len(game_board.get_positions()) or game_board.get_positions() == []:
             end = time.time()
@@ -276,69 +277,31 @@ class MainWindow(tk.Frame):
 
             return
 
-        number_of_possibilities = sorted(num_locations.keys())
-
-        solutions = []
-        temp_solution = []
-        number_of_solutions = 0
-        first_flag = True
-        first_end = 0
-
         # import pdb; pdb.set_trace()
 
-        # add board position to orig positions and remove from board
+        # boards for keeping track of solutions
+        temp_board_outer = TempBoard(game_board.get_positions())
+        temp_board_inner = TempBoard(game_board.get_positions())
+        reset_board = game_board.get_positions()
+
+        # solution object
+        solution = SolutionList(reset_board, temp_board_inner, temp_board_outer, puzzle_pieces)
+
+        solved = self.rotations(solution)
+
+        number_of_solutions = solved.number_of_solutions
+        solutions = solved.get_solutions()
+        first_end = solved.get_first_end()
 
         # outer most row (for each frequency of occurance)
-        temp_board_outer = game_board.get_positions()
-        for x in number_of_possibilities:
-            # for piece_permutation in itertools.permutations(puzzle_pieces):
-
-            # middle row (for each piece in occurance)
-            temp_board_middle = list(temp_board_outer)
-            for piece in num_locations[x]:
-                # for piece in piece_permutation:
-
-                # rotation for each piece
-                temp_board_inner = list(temp_board_middle)
-                for rotation in piece.get_rotations():
-                    # inner most row (for each location of piece)
-
-                    for first_piece in rotation.get_locations():
-
-                        x_value = first_piece[0][0]
-                        y_value = first_piece[0][1]
-                        all_locations = []
-                        for location in first_piece[1]:
-                            new_x = location[0] + x_value
-                            new_y = location[1] + y_value
-                            all_locations.append([new_x, new_y])
-
-                        remove = 0
-                        for location in all_locations:
-                            if location in temp_board_inner:
-                                remove = remove + 1
-                        if remove == len(all_locations):
-                            prev_solution = list(temp_solution)
-                            temp_solution.append(all_locations)
-                            for location in all_locations:
-                                temp_board_inner.remove(location)
-
-                            if len(temp_board_inner) == 0:
-                                if first_flag is True:
-                                    first_end = time.time()
-                                solutions.append([temp_solution])
-                                number_of_solutions = number_of_solutions + 1
-                                temp_board_inner = list(temp_board_middle)
-                                temp_solution = list(prev_solution)
-                                first_flag = False
-                            # break
-
-                if len(temp_board_inner) != 0 and len(temp_solution) > 0:
-                    temp_board_middle = list(temp_board_inner)
+        # middle row (for each piece in occurance)
+        # temp_board_middle = list(temp_board_outer)
+        # for piece in piece_permutation:
 
         end = time.time()
         if first_end == 0:
             first_end = start
+            self.no_solution()
 
         t = tk.Toplevel(self)
         t.wm_title("Puzzle Solution")
@@ -380,7 +343,7 @@ class MainWindow(tk.Frame):
             for piece in solution[0]:
                 piece_color = random.choice(color)
                 for tile in piece:
-                    # import pdb; pdb.set_trace()
+                    import pdb; pdb.set_trace()
                     tile_1 = tile[0] + 1
                     tile_2 = tile[1] + 1
                     board.create_polygon(
@@ -416,6 +379,102 @@ class MainWindow(tk.Frame):
 
         return
 
+    def rotations(self, solution):
+        if solution.recursion_counter == 4:
+            print solution.number_of_solutions
+            return solution
+        if solution.counter == len(solution.num_locations):
+            solution.counter = 0
+            solution.temp_board_outer.set_positions(solution.reset_board)
+            solution.temp_board_inner.set_positions(solution.reset_board)
+            solution.recursion_counter = solution.recursion_counter + 1
+
+        temp_rotations = []
+        temp_pieces = []
+        rotation_counter = 0
+
+        print "NEW PIECE"
+        # print solution.counter
+        print solution.solutions
+        print solution.temp_board_inner.get_positions()
+        # rotation for each piece
+        solution.temp_board_inner.set_positions(solution.temp_board_outer.get_positions())
+
+        piece = self.get_new_piece(solution.num_locations, solution.counter)
+
+        #for piece in pieces:
+        # if piece in temp_pieces:
+        #     break
+        while rotation_counter < len(piece.get_rotations()):
+            next_piece = solution.recursion_counter
+            for rotation in piece.get_rotations():
+                while next_piece < len(piece.get_rotations()):
+                    #print "SKIPPING ROTATION"
+                    next_piece = next_piece + 1
+                    break
+                if rotation in temp_rotations:
+                    #print "SKIPPING ROTATION"
+                    next_piece = next_piece + 1
+                    break
+                #print "NEW ROTATION"
+                #print rotation.get_positions()
+                #print "BOARD"
+                #print temp_board_inner
+                # inner most row (for each location of piece)
+
+                for location in rotation.get_locations():
+                    if rotation in temp_rotations:
+                        temp_pieces.append(piece)
+                        # print "BREAK"
+                        rotation_counter = len(piece.get_rotations())
+                        print temp_rotations
+                        break
+                    # print "NEW LOCATION"
+
+                    x_value = location[0][0]
+                    y_value = location[0][1]
+                    all_locations = []
+                    for loc in location[1]:
+                        new_x = loc[0] + x_value
+                        new_y = loc[1] + y_value
+                        all_locations.append([new_x, new_y])
+
+                    remove = 0
+                    for loc in all_locations:
+                        if loc in solution.temp_board_inner.get_positions():
+                            remove = remove + 1
+                    if remove == len(all_locations):
+                        prev_solution = list(solution.temp_solution)
+                        solution.temp_solution.append(all_locations)
+                        temp_rotations.append(rotation)
+
+                        solution.temp_board_inner.remove_locations(all_locations)
+
+                        if len(solution.temp_board_inner.get_positions()) == 0:
+                            if len(solution.get_solutions()) == 0:
+                                solution.set_first_end(time.time())
+                            solution.add_solution(solution.temp_solution)
+
+                            solution.temp_board_inner.set_positions(solution.temp_board_outer.get_positions())
+                            solution.temp_solution = list(prev_solution)
+                            temp_rotations = []
+                            temp_pieces = []
+                            # possibly need to alter a counter here
+
+            if len(solution.temp_board_inner.get_positions()) != 0 and len(solution.temp_solution) > 0:
+                solution.temp_board_outer.set_positions(solution.temp_board_inner.get_positions())
+            rotation_counter = rotation_counter + 1
+
+            solution.update_counter()
+
+            self.rotations(solution)
+
+    def get_new_piece(self, num_locations, num):
+
+        #number_of_possibilities = sorted(num_locations.keys())
+
+        #return num_locations[number_of_possibilities[num]]
+        return num_locations[num]
 
 if __name__ == "__main__":
     root = tk.Tk()
