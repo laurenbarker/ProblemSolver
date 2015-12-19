@@ -343,9 +343,9 @@ class MainWindow(tk.Frame):
             for piece in solution[0]:
                 piece_color = random.choice(color)
                 for tile in piece:
-                    import pdb; pdb.set_trace()
-                    tile_1 = tile[0] + 1
-                    tile_2 = tile[1] + 1
+                    # import pdb; pdb.set_trace()
+                    tile_1 = tile + 1
+                    tile_2 = tile + 1
                     board.create_polygon(
                         x1 + (x1 * tile_1),
                         y1 + (x1 * tile_2),
@@ -380,56 +380,44 @@ class MainWindow(tk.Frame):
         return
 
     def rotations(self, solution):
-        if solution.recursion_counter == 4:
-            print solution.number_of_solutions
-            return solution
         if solution.counter == len(solution.num_locations):
             solution.counter = 0
             solution.temp_board_outer.set_positions(solution.reset_board)
             solution.temp_board_inner.set_positions(solution.reset_board)
             solution.recursion_counter = solution.recursion_counter + 1
+            solution.temp_solution = []
 
-        temp_rotations = []
-        temp_pieces = []
+        if solution.recursion_counter == 4:
+            print solution.number_of_solutions
+            return solution
+
+        temp_rotations = False
         rotation_counter = 0
 
-        print "NEW PIECE"
-        # print solution.counter
-        print solution.solutions
+        # print "NEW PIECE"
+        print solution.recursion_counter
+        # print solution.solutions
         print solution.temp_board_inner.get_positions()
         # rotation for each piece
-        solution.temp_board_inner.set_positions(solution.temp_board_outer.get_positions())
+        # solution.temp_board_inner.set_positions(solution.temp_board_outer.get_positions())
 
         piece = self.get_new_piece(solution.num_locations, solution.counter)
 
-        #for piece in pieces:
-        # if piece in temp_pieces:
-        #     break
         while rotation_counter < len(piece.get_rotations()):
-            next_piece = solution.recursion_counter
+            if len(solution.temp_board_inner.get_positions()) == 0:
+                break
+
             for rotation in piece.get_rotations():
-                while next_piece < len(piece.get_rotations()):
-                    #print "SKIPPING ROTATION"
-                    next_piece = next_piece + 1
+                if len(solution.temp_board_inner.get_positions()) == 0:
                     break
-                if rotation in temp_rotations:
-                    #print "SKIPPING ROTATION"
-                    next_piece = next_piece + 1
+                if temp_rotations is True:
+                    temp_rotations = False
                     break
-                #print "NEW ROTATION"
-                #print rotation.get_positions()
-                #print "BOARD"
-                #print temp_board_inner
                 # inner most row (for each location of piece)
 
                 for location in rotation.get_locations():
-                    if rotation in temp_rotations:
-                        temp_pieces.append(piece)
-                        # print "BREAK"
-                        rotation_counter = len(piece.get_rotations())
-                        print temp_rotations
+                    if len(solution.temp_board_inner.get_positions()) == 0:
                         break
-                    # print "NEW LOCATION"
 
                     x_value = location[0][0]
                     y_value = location[0][1]
@@ -446,28 +434,27 @@ class MainWindow(tk.Frame):
                     if remove == len(all_locations):
                         prev_solution = list(solution.temp_solution)
                         solution.temp_solution.append(all_locations)
-                        temp_rotations.append(rotation)
+                        temp_rotations = True
 
                         solution.temp_board_inner.remove_locations(all_locations)
 
                         if len(solution.temp_board_inner.get_positions()) == 0:
                             if len(solution.get_solutions()) == 0:
                                 solution.set_first_end(time.time())
+                            # if list(solution.temp_solution) not in solution.get_solutions():
                             solution.add_solution(solution.temp_solution)
+                            solution.recursion_counter = 4
 
-                            solution.temp_board_inner.set_positions(solution.temp_board_outer.get_positions())
+                            solution.temp_board_inner.set_positions(solution.reset_board)
                             solution.temp_solution = list(prev_solution)
-                            temp_rotations = []
-                            temp_pieces = []
+                            temp_rotations = False
                             # possibly need to alter a counter here
 
-            if len(solution.temp_board_inner.get_positions()) != 0 and len(solution.temp_solution) > 0:
-                solution.temp_board_outer.set_positions(solution.temp_board_inner.get_positions())
             rotation_counter = rotation_counter + 1
 
             solution.update_counter()
 
-            self.rotations(solution)
+            return self.rotations(solution)
 
     def get_new_piece(self, num_locations, num):
 
